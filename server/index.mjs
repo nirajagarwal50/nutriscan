@@ -133,7 +133,7 @@ async function fetchOffSearch(q, pageSize) {
   )
   const r = await fetch(url.toString(), {
     headers: { 'User-Agent': 'NutriScan/1.0 (https://github.com/nirajagarwal50/nutriscan)' },
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(30000),
   })
   if (!r.ok) throw new Error(String(r.status))
   return r.json()
