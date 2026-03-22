@@ -131,7 +131,10 @@ async function fetchOffSearch(q, pageSize) {
     'fields',
     'code,product_name,brands,nutriscore_grade,nutrition_grade_fr,image_front_url,quantity'
   )
-  const r = await fetch(url.toString(), { headers: { 'User-Agent': 'NutriScan/1.0' } })
+  const r = await fetch(url.toString(), {
+    headers: { 'User-Agent': 'NutriScan/1.0 (https://github.com/nirajagarwal50/nutriscan)' },
+    signal: AbortSignal.timeout(15000),
+  })
   if (!r.ok) throw new Error(String(r.status))
   return r.json()
 }
@@ -183,8 +186,9 @@ app.get('/api/search', async (req, res) => {
     const data = await fetchOffSearch(q, pageSize)
     cacheSet(cacheKey, data, TTL_SEARCH_MS)
     res.json(data)
-  } catch {
-    res.status(502).json({ error: 'fetch_failed' })
+  } catch (err) {
+    console.error('Search fetch error:', err?.message || err)
+    res.status(502).json({ error: 'fetch_failed', detail: err?.message })
   }
 })
 
