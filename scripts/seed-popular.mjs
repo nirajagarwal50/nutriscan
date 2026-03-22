@@ -6,8 +6,7 @@
  * Requires network. Can take several minutes. Be gentle with OFF (built-in delays + retries).
  */
 
-import fs from 'fs'
-import { getDb, upsertProductStmt, DB_PATH } from '../server/db.mjs'
+import { initDb, upsertProduct } from '../server/db.mjs'
 
 const OFF_ORIGIN = 'https://world.openfoodfacts.org'
 const TARGET = Math.min(250, Math.max(50, Number(process.env.SEED_TARGET_COUNT || 200)))
@@ -140,9 +139,7 @@ async function fetchProduct(code) {
 }
 
 async function main() {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true })
-  getDb()
-  const upsert = upsertProductStmt()
+  await initDb()
 
   const codes = new Set()
   const pageSize = 25
@@ -183,7 +180,7 @@ async function main() {
       const p = data.product
       const name = p.product_name || ''
       const brands = p.brands || ''
-      upsert.run({
+      await upsertProduct({
         code: String(p.code || code),
         name,
         brands,

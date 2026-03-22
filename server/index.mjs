@@ -2,9 +2,7 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import rateLimit from 'express-rate-limit'
-import { getDb, getProductPayloadByCode, productCount, searchCachedProducts } from './db.mjs'
-
-getDb()
+import { initDb, getProductPayloadByCode, productCount, searchCachedProducts } from './db.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -72,9 +70,9 @@ const apiLimiter = rateLimit({
 app.set('trust proxy', 1)
 app.use('/api', apiLimiter)
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (_req, res) => {
   try {
-    const n = productCount()
+    const n = await productCount()
     res.json({ ok: true, cached_products: n })
   } catch {
     res.json({ ok: true, cached_products: null })
@@ -90,7 +88,7 @@ app.get('/api/product/:barcode', async (req, res) => {
   }
 
   try {
-    const cachedPayload = getProductPayloadByCode(clean)
+    const cachedPayload = await getProductPayloadByCode(clean)
     if (cachedPayload) {
       res.type('application/json').send(cachedPayload)
       return
@@ -160,8 +158,8 @@ app.get('/api/search', async (req, res) => {
     return
   }
 
-  const hasDb = productCount() > 0
-  const local = hasDb ? searchCachedProducts(q, pageSize) : []
+  const hasDb = (await productCount()) > 0
+  const local = hasDb ? await searchCachedProducts(q, pageSize) : []
 
   if (local.length > 0) {
     const merged = dedupeByCode(local).slice(0, pageSize)
@@ -203,6 +201,14 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-app.listen(PORT, () => {
-  console.log(`NutriScan API listening on http://localhost:${PORT}`)
+async function start() {
+  await initDb()
+  app.listen(PORT, () => {
+    console.log(`NutriScan API listening on http://localhost:${PORT}`)
+  })
+}
+
+start().catch((err) => {
+  console.error('Failed to start server:', err)
+  process.exit(1)
 })
