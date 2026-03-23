@@ -150,7 +150,8 @@ export async function productCount() {
   try {
     const { rows } = await pool.query('SELECT COUNT(*) AS c FROM products')
     return Number(rows[0]?.c || 0)
-  } catch {
+  } catch (err) {
+    console.error('productCount error:', err?.message)
     return 0
   }
 }

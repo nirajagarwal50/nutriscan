@@ -73,9 +73,9 @@ app.use('/api', apiLimiter)
 app.get('/api/health', async (_req, res) => {
   try {
     const n = await productCount()
-    res.json({ ok: true, cached_products: n })
-  } catch {
-    res.json({ ok: true, cached_products: null })
+    res.json({ ok: true, cached_products: n, db_connected: !!process.env.DATABASE_URL })
+  } catch (err) {
+    res.json({ ok: true, cached_products: null, db_error: err?.message })
   }
 })
 

@@ -187,7 +187,7 @@ async function main() {
     }
   }
 
-  console.log(`Done. Stored ${ok} products in ${DB_PATH}`)
+  console.log(`Done. Stored ${ok} products in PostgreSQL.`)
 }
 
 main().catch((e) => {
