@@ -14,6 +14,8 @@ export function getPool() {
   return _pool
 }
 
+const SEARCH_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+
 export async function initDb() {
   const pool = getPool()
   if (!pool) return
@@ -27,7 +29,48 @@ export async function initDb() {
     );
     CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
     CREATE INDEX IF NOT EXISTS idx_products_brands ON products(brands);
+
+    CREATE TABLE IF NOT EXISTS search_cache (
+      cache_key TEXT PRIMARY KEY,
+      result TEXT NOT NULL,
+      updated_at BIGINT NOT NULL
+    );
   `)
+}
+
+export async function getCachedSearch(q, pageSize) {
+  const pool = getPool()
+  if (!pool) return null
+  try {
+    const key = `${q.toLowerCase()}:${pageSize}`
+    const { rows } = await pool.query(
+      'SELECT result, updated_at FROM search_cache WHERE cache_key = $1',
+      [key]
+    )
+    if (!rows[0]) return null
+    if (Date.now() - Number(rows[0].updated_at) > SEARCH_CACHE_TTL_MS) return null
+    return JSON.parse(rows[0].result)
+  } catch {
+    return null
+  }
+}
+
+export async function setCachedSearch(q, pageSize, data) {
+  const pool = getPool()
+  if (!pool) return
+  try {
+    const key = `${q.toLowerCase()}:${pageSize}`
+    await pool.query(
+      `INSERT INTO search_cache (cache_key, result, updated_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (cache_key) DO UPDATE SET
+         result = EXCLUDED.result,
+         updated_at = EXCLUDED.updated_at`,
+      [key, JSON.stringify(data), Date.now()]
+    )
+  } catch {
+    // ignore cache write failures
+  }
 }
 
 export async function getProductPayloadByCode(code) {

@@ -2,7 +2,7 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import rateLimit from 'express-rate-limit'
-import { initDb, getProductPayloadByCode, productCount, searchCachedProducts } from './db.mjs'
+import { initDb, getProductPayloadByCode, productCount, searchCachedProducts, getCachedSearch, setCachedSearch } from './db.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -179,10 +179,18 @@ app.get('/api/search', async (req, res) => {
     return
   }
 
+  const dbHit = await getCachedSearch(q, pageSize)
+  if (dbHit) {
+    cacheSet(cacheKey, dbHit, TTL_SEARCH_MS)
+    res.json(dbHit)
+    return
+  }
+
   try {
     /** @type {unknown} */
     const data = await fetchOffSearch(q, pageSize)
     cacheSet(cacheKey, data, TTL_SEARCH_MS)
+    await setCachedSearch(q, pageSize, data)
     res.json(data)
   } catch (err) {
     console.error('Search fetch error:', err?.message || err)
