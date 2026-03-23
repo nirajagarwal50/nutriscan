@@ -211,6 +211,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 async function start() {
+  console.log('ENV CHECK - DATABASE_URL set:', !!process.env.DATABASE_URL)
+  console.log('ENV CHECK - NODE_ENV:', process.env.NODE_ENV)
   await initDb()
   app.listen(PORT, () => {
     console.log(`NutriScan API listening on http://localhost:${PORT}`)
