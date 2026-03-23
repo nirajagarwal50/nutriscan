@@ -73,7 +73,8 @@ app.use('/api', apiLimiter)
 app.get('/api/health', async (_req, res) => {
   try {
     const n = await productCount()
-    res.json({ ok: true, cached_products: n, db_connected: !!process.env.DATABASE_URL })
+    const dbKeys = Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('POSTGRES'))
+    res.json({ ok: true, cached_products: n, db_connected: !!process.env.DATABASE_URL, db_keys: dbKeys })
   } catch (err) {
     res.json({ ok: true, cached_products: null, db_error: err?.message })
   }
