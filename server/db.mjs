@@ -26,15 +26,16 @@ export async function initDb() {
       brands TEXT,
       payload TEXT NOT NULL,
       updated_at BIGINT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
-    CREATE INDEX IF NOT EXISTS idx_products_brands ON products(brands);
-
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)`)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_brands ON products(brands)`)
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS search_cache (
       cache_key TEXT PRIMARY KEY,
       result TEXT NOT NULL,
       updated_at BIGINT NOT NULL
-    );
+    )
   `)
 }
 

@@ -7,7 +7,11 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(npm install:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(curl -s \"https://nutriscan-production-bb00.up.railway.app/api/health\")",
+      "Bash(curl -s -w \"\\\\nTime: %{time_total}s\" \"https://nutriscan-production-bb00.up.railway.app/api/search?q=lays&page_size=5\")",
+      "Bash(curl -s -w \"\\\\nTime: %{time_total}s\" \"https://nutriscan-production-bb00.up.railway.app/api/search?q=yogabar&page_size=5\")",
+      "Bash(python3 -c \"import sys; d=sys.stdin.read\\(\\); print\\(d[-200:]\\)\")"
     ]
   }
 }

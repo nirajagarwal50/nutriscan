@@ -73,10 +73,9 @@ app.use('/api', apiLimiter)
 app.get('/api/health', async (_req, res) => {
   try {
     const n = await productCount()
-    const dbKeys = Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('POSTGRES'))
-    res.json({ ok: true, cached_products: n, db_connected: !!process.env.DATABASE_URL, db_keys: dbKeys })
-  } catch (err) {
-    res.json({ ok: true, cached_products: null, db_error: err?.message })
+    res.json({ ok: true, cached_products: n })
+  } catch {
+    res.json({ ok: true, cached_products: null })
   }
 })
 
@@ -211,8 +210,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 async function start() {
-  console.log('ENV CHECK - DATABASE_URL set:', !!process.env.DATABASE_URL)
-  console.log('ENV CHECK - NODE_ENV:', process.env.NODE_ENV)
   await initDb()
   app.listen(PORT, () => {
     console.log(`NutriScan API listening on http://localhost:${PORT}`)

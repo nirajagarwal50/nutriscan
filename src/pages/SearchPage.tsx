@@ -36,8 +36,8 @@ export function SearchPage() {
         const res = await searchProducts(q, 24)
         if (cancelled) return
         setResults(res.products || [])
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Search failed')
+      } catch {
+        if (!cancelled) setError('Search is taking too long or unavailable. Please try again in a moment.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -93,7 +93,20 @@ export function SearchPage() {
         {!q ? (
           <p className="text-sm text-slate-600 dark:text-slate-400">Enter a product name or a barcode to search Open Food Facts.</p>
         ) : loading ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">Searching…</p>
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-400">Searching — this may take a few seconds…</p>
+            <div className="animate-pulse space-y-3">
+              {[1,2,3].map(i => (
+                <div key={i} className="flex gap-3 p-3 rounded-xl border border-primary/10 bg-white dark:bg-slate-900">
+                  <div className="size-16 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0"/>
+                  <div className="flex-1 space-y-2 py-1">
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"/>
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : error ? (
           <p className="text-sm text-red-600">{error}</p>
         ) : (
