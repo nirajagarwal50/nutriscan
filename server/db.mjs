@@ -18,25 +18,34 @@ const SEARCH_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 export async function initDb() {
   const pool = getPool()
-  if (!pool) return
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS products (
-      code TEXT PRIMARY KEY,
-      name TEXT,
-      brands TEXT,
-      payload TEXT NOT NULL,
-      updated_at BIGINT NOT NULL
-    )
-  `)
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)`)
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_brands ON products(brands)`)
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS search_cache (
-      cache_key TEXT PRIMARY KEY,
-      result TEXT NOT NULL,
-      updated_at BIGINT NOT NULL
-    )
-  `)
+  if (!pool) {
+    console.log('No DATABASE_URL set — running without DB cache')
+    return
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        code TEXT PRIMARY KEY,
+        name TEXT,
+        brands TEXT,
+        payload TEXT NOT NULL,
+        updated_at BIGINT NOT NULL
+      )
+    `)
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)`)
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_products_brands ON products(brands)`)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS search_cache (
+        cache_key TEXT PRIMARY KEY,
+        result TEXT NOT NULL,
+        updated_at BIGINT NOT NULL
+      )
+    `)
+    console.log('DB initialized successfully')
+  } catch (err) {
+    console.error('DB init failed (continuing without DB cache):', err?.message)
+    _pool = null
+  }
 }
 
 export async function getCachedSearch(q, pageSize) {
